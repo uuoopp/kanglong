@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # 导入函数库
 
 import bisect
@@ -25,6 +24,7 @@ class KLYHStrategy(object):
 
         买入条件:
             市场出现系统性低估机会可以买入 (市场出现PE<7、PB<1、股息率>5% (ROE>18%)的品种)，此时满仓(100%)
+            市场出现系统性低估机会可以买入 (市场出现PE,PB处于历史1%以下，此时满仓(100%)
             单一标的PE、PB 处于历史30%以下可以买入
             PE处于历史30%以下，且PB<1.5可以买入
             PB处于历史30%以下，且PE<10 或 1/PE<十年期国债利率X2，可以买入
@@ -56,6 +56,10 @@ class KLYHStrategy(object):
         if self._pe<7.0 and self._pb<1.0 and self._pb/self._pe>0.18:
             print(debug_msg + '1.0')
             return 1.0
+        if pe_quantile<0.01 and pb_quantile<0.01 and self._pb<4:
+            print(debug_msg + '1.0')
+            return 1.0
+
         if self._pe>50.0 or self._pb>4.5:
             print(debug_msg + '-1.0')
             return -1.0
@@ -91,15 +95,15 @@ class KLYHStrategy(object):
                                         pe, self._history_factors['pe'])
         position = 0
         if action == 0:
-            if pe_quantile>=0.7 and pe_quantile<0.8:
-                position = -0.05
-            elif pe_quantile>=0.8 and pe_quantile<0.85:
-                position = -0.1
+            if pe_quantile>=0.8 and pe_quantile<0.85:
+                position = -0.02
             elif pe_quantile>=0.85 and pe_quantile<0.9:
-                position = -0.3
+                position = -0.1
             elif pe_quantile>=0.9 and pe_quantile<0.95:
+                position = -0.3
+            elif pe_quantile>=0.95 and pe_quantile<0.97:
                 position = -0.5
-            elif pe_quantile>=0.95 and pe_quantile<0.99:
+            elif pe_quantile>=0.97 and pe_quantile<0.99:
                 position = -0.7
             elif pe_quantile>=0.99:
                 position = -1
@@ -243,8 +247,9 @@ INDEX_STOCKS = {
     '000919.XSHG':'519671.OF',    #519671.OF 银河300价值
     '000922.XSHG':'100032.OF',    #100032.OF 富国中证红利
     '399702.XSHE':'070023.OF',    #070023.OF 嘉实深F120基本面联接
-    #'399978.XSHE':'001550.OF',    #001550.OF 天弘中证医药100
-    #'399812.XSHE':'000968.OF'     #000968.OF 广发中证养老指数
+    '399978.XSHE':'001550.OF',    #001550.OF 天弘中证医药100
+    '399812.XSHE':'000968.OF',    #000968.OF 广发中证养老指数
+    '000932.XSHG':'000248.OF'     #000248.OF 汇添富中证主要消费ETF联接
 }
 
 TOTAL_CASH = 50000 * len(INDEX_STOCKS)
@@ -295,8 +300,8 @@ def after_market_close(context):
     pass
 
 def weekly(context):
-    if context.current_dt.isoweekday() != 2:
-        # 不在周二, 跳过执行
+    if context.current_dt.isoweekday() != 4:
+        # 不在周四, 跳过执行
         return
 
     for stock_index, stock_fund in INDEX_STOCKS.items():
