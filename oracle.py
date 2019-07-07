@@ -56,16 +56,14 @@ class KLYHStrategy(object):
         if self._pe<7.0 and self._pb<1.0 and self._pb/self._pe>0.18:
             print(debug_msg + '1.0')
             return 1.0
-        if pe_quantile<0.01 and pb_quantile<0.01 and self._pb<4:
-            print(debug_msg + '1.0')
-            return 1.0
 
         if self._pe>50.0 or self._pb>4.5:
             print(debug_msg + '-1.0')
             return -1.0
 
         if (pe_quantile<0.3 and pb_quantile<0.3 and self._pb<2) or \
-           (pb_quantile<0.3 and 1.0/self._pe>national_debt_rate*3):
+           (pb_quantile<0.3 and 1.0/self._pe>national_debt_rate*3) or \
+           (pe_quantile<0.1 and pb_quantile<0.1):
             position =  self.kelly(self._pe, avg_roe, national_debt_rate, action=1)
             print("{}{:.2f}".format(debug_msg, position))
             return position
@@ -96,15 +94,15 @@ class KLYHStrategy(object):
                                         pe, self._history_factors['pe'])
         position = 0
         if action == 0:
-            if pe_quantile>=0.7 and pe_quantile<0.8:
+            if pe_quantile>=0.8 and pe_quantile<0.85:
                 position = -0.02
-            elif pe_quantile>=0.8 and pe_quantile<0.85:
-                position = -0.1
             elif pe_quantile>=0.85 and pe_quantile<0.9:
-                position = -0.3
+                position = -0.1
             elif pe_quantile>=0.9 and pe_quantile<0.95:
+                position = -0.3
+            elif pe_quantile>=0.95 and pe_quantile<0.97:
                 position = -0.5
-            elif pe_quantile>=0.95 and pe_quantile<0.99:
+            elif pe_quantile>=0.97 and pe_quantile<0.99:
                 position = -0.7
             elif pe_quantile>=0.99:
                 position = -1
@@ -251,7 +249,8 @@ warnings.filterwarnings("ignore")
 
 
 index_stocks = {
-    '000016.XSHG': '上证50',    #110003.OF 易方达上证50指数
+    '399902.XSHE':'中证流通',
+    '000016.XSHG':'上证50',     #110003.OF 易方达上证50指数
     '000300.XSHG':'沪深300',    #000176.OF 嘉实沪深300增强
     '000905.XSHG':'中证500',    #161017.OF 富国中证500增强
     '000919.XSHG':'300价值',    #310398.OF 申万沪深300价值
@@ -259,12 +258,13 @@ index_stocks = {
     '399702.XSHE':'深证F120',   #070023.OF 嘉实深F120基本面联接
     '399978.XSHE':'中证医药100',#001550.OF 天弘中证医药100
     '399812.XSHE':'中证养老',   #000968.OF 广发中证养老指数
-    '000932.XSHG':'中证消费'    #000248.OF 汇添富中证主要消费ETF联接
+    '000932.XSHG':'中证消费',    #000248.OF 汇添富中证主要消费ETF联接
+    '000807.XSHG':'食品饮料'
 }
 
 for index_code, index_name in index_stocks.items():
     base_date = datetime.now().strftime('%Y-%m-%d')
-    base_date = '2017-04-29'
+    # base_date = '2019-1-5'
     stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
     print("{}:============{}=============".format(base_date, index_name))
     stragety = KLYHStrategy(stock)

@@ -4,6 +4,8 @@
    聚宽平台运行
 """
 
+# 导入函数库
+
 import bisect
 from jqdata import get_all_trade_days
 from datetime import datetime, timedelta
@@ -59,16 +61,14 @@ class KLYHStrategy(object):
         if self._pe<7.0 and self._pb<1.0 and self._pb/self._pe>0.18:
             print(debug_msg + '1.0')
             return 1.0
-        if pe_quantile<0.01 and pb_quantile<0.01 and self._pb<4:
-            print(debug_msg + '1.0')
-            return 1.0
 
         if self._pe>50.0 or self._pb>4.5:
             print(debug_msg + '-1.0')
             return -1.0
 
         if (pe_quantile<0.3 and pb_quantile<0.3 and self._pb<2) or \
-           (pb_quantile<0.3 and 1.0/self._pe>national_debt_rate*3):
+           (pb_quantile<0.3 and 1.0/self._pe>national_debt_rate*3) or \
+           (pe_quantile<0.1 and pb_quantile<0.1):
             position =  self.kelly(self._pe, avg_roe, national_debt_rate, action=1)
             print("{}{:.2f}".format(debug_msg, position))
             return position
@@ -98,15 +98,15 @@ class KLYHStrategy(object):
                                         pe, self._history_factors['pe'])
         position = 0
         if action == 0:
-            if pe_quantile>=0.7 and pe_quantile<0.8:
+            if pe_quantile>=0.8 and pe_quantile<0.85:
                 position = -0.02
-            elif pe_quantile>=0.8 and pe_quantile<0.85:
-                position = -0.1
             elif pe_quantile>=0.85 and pe_quantile<0.9:
-                position = -0.3
+                position = -0.1
             elif pe_quantile>=0.9 and pe_quantile<0.95:
+                position = -0.3
+            elif pe_quantile>=0.95 and pe_quantile<0.97:
                 position = -0.5
-            elif pe_quantile>=0.95 and pe_quantile<0.99:
+            elif pe_quantile>=0.97 and pe_quantile<0.99:
                 position = -0.7
             elif pe_quantile>=0.99:
                 position = -1
@@ -303,8 +303,8 @@ def after_market_close(context):
     pass
 
 def weekly(context):
-    if context.current_dt.isoweekday() != 2:
-        # 不在周二, 跳过执行
+    if context.current_dt.isoweekday() != 4:
+        # 不在周四, 跳过执行
         return
 
     for stock_index, stock_fund in INDEX_STOCKS.items():
