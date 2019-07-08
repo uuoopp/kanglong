@@ -4,8 +4,6 @@
    聚宽平台运行
 """
 
-# 导入函数库
-
 import bisect
 from jqdata import get_all_trade_days
 from datetime import datetime, timedelta
@@ -252,7 +250,11 @@ INDEX_STOCKS = {
     '399702.XSHE':'070023.OF',    #070023.OF 嘉实深F120基本面联接
     '399978.XSHE':'001550.OF',    #001550.OF 天弘中证医药100
     '399812.XSHE':'000968.OF',    #000968.OF 广发中证养老指数
-    '000932.XSHG':'000248.OF'     #000248.OF 汇添富中证主要消费ETF联接
+    '000932.XSHG':'000248.OF',    #000248.OF 汇添富中证主要消费ETF联接
+    '399006.XSHE':'110026.OF',    #110026.OF 易方达创业板ETF联接
+    '000992.XSHG':'001469.OF',    #001469.OF 广发金融地产联接
+    '000827.XSHG':'001064.OF',    #001064.OF 广发中证环保ETF联接A
+    '399975.XSHE':'502010.OF'     #502010.OF 易方达证券公司分级
 }
 
 TOTAL_CASH = 50000 * len(INDEX_STOCKS)

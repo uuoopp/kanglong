@@ -258,13 +258,17 @@ index_stocks = {
     '399702.XSHE':'深证F120',   #070023.OF 嘉实深F120基本面联接
     '399978.XSHE':'中证医药100',#001550.OF 天弘中证医药100
     '399812.XSHE':'中证养老',   #000968.OF 广发中证养老指数
-    '000932.XSHG':'中证消费',    #000248.OF 汇添富中证主要消费ETF联接
-    '000807.XSHG':'食品饮料'
+    '000932.XSHG':'中证消费',   #000248.OF 汇添富中证主要消费ETF联接
+    '000807.XSHG':'食品饮料',   #001631.OF 天弘中证食品饮料
+    '399006.XSHE':'创业板指',   #110026.OF 易方达创业板ETF联接
+    '000992.XSHG':'全指金融',   #001469.OF 广发金融地产联接
+    '000827.XSHG':'中证环保',   #001064.OF 广发中证环保ETF联接A
+    '399975.XSHE':'中证全指证券公司' #502010.OF 易方达证券公司分级
 }
 
 for index_code, index_name in index_stocks.items():
     base_date = datetime.now().strftime('%Y-%m-%d')
-    # base_date = '2019-1-5'
+    #base_date = '2019-1-5'
     stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
     print("{}:============{}=============".format(base_date, index_name))
     stragety = KLYHStrategy(stock)
