@@ -155,6 +155,10 @@ https://www.joinquant.com/algorithm/live/liveUrlShareIndex?backtestId=9ce88469ba
 
 密码:jiosim
 
+且慢实盘同步:
+
+https://qieman.com/portfolios/ZH035242
+
 * 为什么资金分成250份？
 
 综合考虑Beta因子、费率、波动率、夏普比例等等因素，选择5只宽基指数，每只预计投入资金50份；50X5=250；
