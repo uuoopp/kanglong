@@ -250,7 +250,8 @@ warnings.filterwarnings("ignore")
 
 index_stocks = {
     '399902.XSHE':'中证流通',
-    '000016.XSHG':'上证50',     #110003.OF 易方达上证50指数
+    '000925.XSHG':'基本面50',  #160716.OF 嘉实基本面50指数
+    '000016.XSHG':'上证50',     #110003.OF 易方达上证50指数, 501050,华夏上证50AH优选指数
     '000300.XSHG':'沪深300',    #000176.OF 嘉实沪深300增强
     '000905.XSHG':'中证500',    #161017.OF 富国中证500增强
     '000919.XSHG':'300价值',    #310398.OF 申万沪深300价值
@@ -263,13 +264,15 @@ index_stocks = {
     '399006.XSHE':'创业板指',   #110026.OF 易方达创业板ETF联接
     '000992.XSHG':'全指金融',   #001469.OF 广发金融地产联接
     '000827.XSHG':'中证环保',   #001064.OF 广发中证环保ETF联接A
+    '399986.XSHE':'中证银行',   #001594.OF 天弘中证银行A
     '399975.XSHE':'中证全指证券公司' #502010.OF 易方达证券公司分级
 }
 
 for index_code, index_name in index_stocks.items():
-    base_date = datetime.now().strftime('%Y-%m-%d')
-    #base_date = '2019-1-5'
-    stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
-    print("{}:============{}=============".format(base_date, index_name))
-    stragety = KLYHStrategy(stock)
-    print(stragety.get_trading_position())
+        base_date = datetime.now().strftime('%Y-%m-%d')
+            #base_date = '2019-1-5'
+                stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
+                    print("{}:============{}=============".format(base_date, index_name))
+                        stragety = KLYHStrategy(stock)
+                            print(stragety.get_trading_position())
+
