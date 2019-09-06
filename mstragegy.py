@@ -3,7 +3,6 @@
 """低估值买入多指数组合策略
    聚宽平台运行
 """
-
 import bisect
 from jqdata import get_all_trade_days
 from datetime import datetime, timedelta
@@ -255,7 +254,8 @@ INDEX_STOCKS = {
     '399006.XSHE':'110026.OF',    #110026.OF 易方达创业板ETF联接
     '000992.XSHG':'001469.OF',    #001469.OF 广发金融地产联接
     '000827.XSHG':'001064.OF',    #001064.OF 广发中证环保ETF联接A
-    '399975.XSHE':'502010.OF'     #502010.OF 易方达证券公司分级
+    '399975.XSHE':'502010.OF',    #502010.OF 易方达证券公司分级
+    '399986.XSHE':'001594.OF',    #001594.OF 天弘中证银行A
 }
 
 TOTAL_CASH = 50000 * len(INDEX_STOCKS)
