@@ -151,12 +151,6 @@ F * 0.5 = 20%
 
 * 实盘在哪里？
 
-https://www.joinquant.com/algorithm/live/liveUrlShareIndex?backtestId=9ce88469ba4da2c4ad0be340e0509a8e
-
-密码:jiosim
-
-且慢实盘同步 (且慢的收益率是默认将流动资金按照货基收益来计算的，所以会跟聚宽有一定差别，按实际情况来说，且慢计算的更准):
-
 https://qieman.com/portfolios/ZH035242
 
 * 为什么资金分成250份？
