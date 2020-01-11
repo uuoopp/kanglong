@@ -162,6 +162,16 @@ class ConvertBondBeta(object):
                         'last_cash_date': row['last_cash_date']
             }
 
+            if str(row['list_status_id']) == '301099':
+                # issue-2: CONBOND_BASIC_INO表中数据更新不及时，需要去BOND_BASIC_INFO中确认一下
+                bond_basic_info = bond.run_query(
+                                query(bond.BOND_BASIC_INFO).filter(
+                                    bond.BOND_BASIC_INFO.code == row['code']
+                                )
+                              )
+                if str(bond_basic_info['list_status_id'][0]) == '301099':
+                    continue
+
             if row['list_date'] and row['list_date'] > date:
                 # 只发布了信息，还没有正式上市，暂不记入
                 continue
