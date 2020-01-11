@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import bisect
+import logging
 import math
 from statistics import mean
 import pandas as pd
 from jqdata import get_all_trade_days
 from jqdata import bond
 from datetime import datetime, timedelta
+
+logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=logging.DEBUG)
 
 # 低于110元的转债我们看作低估
 UNDERRATE_PRICE = 110
@@ -62,15 +65,15 @@ class BoudStrategy(object):
         买入时用凯利公式计算仓位:赔率固定
 
         买入条件:
-            转债市场整体平均价格<120
-            转债市场整体平均溢价率<30%
+            转债市场整体平均价格<117
+            转债市场整体平均溢价率<25%
             然后我们再用胜率计算仓位
 
 
         卖出条件:
-            整体收益率>30% (人工判断，目前不自动化)
-            平均溢价率相对历史估值>70% (人工判断，目前不自动化)
-            凯利公式仓位计算为负数
+            平均价格>120
+            平均溢价率历史百分位<20% 且平均价格历史百分位>80% (象限2)
+            平均溢价率历史百分位>80% 且平均价格历史百分位>80% (象限3)
 
         output:
             -1 ~~ 1, -1代表清仓，0代表持仓不动， 1代表全仓买入； -0.5代表清半仓，0.5代表半仓买入
@@ -82,13 +85,17 @@ class BoudStrategy(object):
 
         if position > 0:
             # 加仓
-            if self._avg_price < 120 and self._avg_premium_ratio < 0.3:
+            if self._avg_price < 117 and self._avg_premium_ratio < 0.25:
                 return position
             else:
                 return 0
         else:
-            # 减仓
-            return position
+            if (self._avg_price > 120) or \
+               (avg_price_quantile > 0.8 and premium_ratio_quantile < 0.2) or\
+               (avg_price_quantile > 0.8 and premium_ratio_quantile > 0.8):
+                return position
+            else:
+                return 0
 
 
 class ConvertBondBeta(object):
@@ -289,6 +296,7 @@ class ConvertBondBeta(object):
             if(i % interval != 0):
                 continue
 
+            logging.info("======统计历史:{}================".format(day.strftime("%Y-%m-%d")))
             bond_list = self.get_bonds(day.strftime("%Y-%m-%d"))
             total_market, underrate_market, avg_price, avg_premium_ratio = self.get_bonds_factors(bond_list)
             #debug_msg = "当前转债存量:{:.2f}, 低估转债存量:{:.2f}， 当前平均价格:{:.2f}, 当前溢价率{:.2f}".format(
