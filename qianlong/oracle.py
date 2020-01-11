@@ -128,7 +128,8 @@ class ConvertBondBeta(object):
 
             code: 可转债代码
             short_name: 可转债名称
-            raise_fund_count: 当前存量总数量
+            raise_fund_count: 发行总数量
+            current_fund_count: 当前存量总数量
             price: 收盘价格
             convert_premium_ratio: 转股溢价率
             convert_price: 转股价格 (如果没有下修的话就是约定转股价)
@@ -137,7 +138,7 @@ class ConvertBondBeta(object):
         """
 
         if date is None:
-            date = self._base_date
+            date = datetime.strptime(self._base_date, '%Y-%m-%d').date()
         else:
             date = datetime.strptime(date, '%Y-%m-%d').date()
 
@@ -186,7 +187,7 @@ class ConvertBondBeta(object):
                 bond_info['raise_fund_count'] = float(row['actual_raise_fund']) * 10000 / float(row['issue_par'])
             else:
                 bond_info['raise_fund_count'] = float(row['plan_raise_fund']) * 10000 / float(row['issue_par'])
-
+            bond_info['current_fund_count'] = bond_info['raise_fund_count']
 
             # 转股信息
             bond_stock = bond.run_query(
@@ -201,7 +202,7 @@ class ConvertBondBeta(object):
                 if bond_stock['acc_convert_ratio'].iloc[-1] >= 99.5:
                     continue
                 else:
-                    bond_info['raise_fund_count'] = bond_info['raise_fund_count'] * (100.0 - bond_stock['acc_convert_ratio'].iloc[-1])
+                    bond_info['current_fund_count'] = bond_info['raise_fund_count'] * (100.0 - bond_stock['acc_convert_ratio'].iloc[-1]) / 100.0
 
             # 先取得转股价，然后取得正股收盘价，然后计算溢价率：转股溢价=（100/转股价格）*正股收盘价-可转债收盘价）
             # 转股价如果有下修，先取得下修转股价
@@ -249,8 +250,8 @@ class ConvertBondBeta(object):
         if bond_list is None:
             bond_list = self.get_bonds()
 
-        total_market = sum([bond['price'] * bond['raise_fund_count'] for bond in bond_list])
-        underrate_market = sum([bond['price'] * bond['raise_fund_count'] for bond in bond_list if bond['price'] <= UNDERRATE_PRICE])
+        total_market = sum([bond['price'] * bond['current_fund_count'] for bond in bond_list])
+        underrate_market = sum([bond['price'] * bond['current_fund_count'] for bond in bond_list if bond['price'] <= UNDERRATE_PRICE])
         avg_price = mean([bond['price'] for bond in bond_list])
         avg_premium_ratio = mean([bond['convert_premium_ratio'] for bond in bond_list])
         return (total_market, underrate_market, avg_price, avg_premium_ratio)
@@ -288,7 +289,7 @@ class ConvertBondBeta(object):
             if(i % interval != 0):
                 continue
 
-            bond_list = self.get_bonds(day)
+            bond_list = self.get_bonds(day.strftime("%Y-%m-%d"))
             total_market, underrate_market, avg_price, avg_premium_ratio = self.get_bonds_factors(bond_list)
             #debug_msg = "当前转债存量:{:.2f}, 低估转债存量:{:.2f}， 当前平均价格:{:.2f}, 当前溢价率{:.2f}".format(
             #            total_market, underrate_market, avg_price, avg_premium_ratio)
