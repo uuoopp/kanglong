@@ -39,9 +39,6 @@ class BoudStrategy(object):
                 3. 采用等权方式计算当前可转债指数的转债平均溢价率历史百分位，比如处在历史溢价10%的时候，计算胜率为1-0.1=0.9
                 取其中数字最小的那个值作为胜率；比如这里的胜率就是0.7
 
-
-        output:
-            -1 ~~ 1, -1代表清仓，0代表持仓不动， 1代表全仓买入； -0.5代表清半仓，0.5代表半仓买入
         """
         cheap_bond_quantile = self._underrate_market / self._total_market
         premium_ratio_quantile = self._index_bond.get_quantile_of_history_factors(
@@ -74,6 +71,9 @@ class BoudStrategy(object):
             整体收益率>30% (人工判断，目前不自动化)
             平均溢价率相对历史估值>70% (人工判断，目前不自动化)
             凯利公式仓位计算为负数
+
+        output:
+            -1 ~~ 1, -1代表清仓，0代表持仓不动， 1代表全仓买入； -0.5代表清半仓，0.5代表半仓买入
 
         """
 
@@ -128,7 +128,7 @@ class ConvertBondBeta(object):
 
             code: 可转债代码
             short_name: 可转债名称
-            raise_fund_count: 发行总数量
+            raise_fund_count: 当前存量总数量
             price: 收盘价格
             convert_premium_ratio: 转股溢价率
             convert_price: 转股价格 (如果没有下修的话就是约定转股价)
@@ -138,13 +138,15 @@ class ConvertBondBeta(object):
 
         if date is None:
             date = self._base_date
+        else:
+            date = datetime.strptime(date, '%Y-%m-%d').date()
 
         df_bonds = bond.run_query(
                 query(bond.CONBOND_BASIC_INFO).filter(
                                     bond.CONBOND_BASIC_INFO.bond_type_id == 703013,
-                                    bond.CONBOND_BASIC_INFO.list_status_id == '301001',
-                                    bond.CONBOND_BASIC_INFO.list_date < date,
-                                    bond.CONBOND_BASIC_INFO.delist_Date >= date
+                                    bond.CONBOND_BASIC_INFO.list_status_id.in_(['301001', '301099']),
+                                    bond.CONBOND_BASIC_INFO.interest_begin_date < date,
+                                    bond.CONBOND_BASIC_INFO.last_cash_date >= date
                                 ).order_by('code').limit(10000)
             )
 
@@ -160,6 +162,14 @@ class ConvertBondBeta(object):
                         'last_cash_date': row['last_cash_date']
             }
 
+            if row['list_date'] and row['list_date'] > date:
+                # 只发布了信息，还没有正式上市，暂不记入
+                continue
+
+            #if bond_info['code'] == '110060':
+            #    print(row)
+            #else:
+            #    continue
 
             # 发行总数量，部分转债没有实际发行价，这个时候用计划发行价来代替；一般都是100元
             if not math.isnan(row['actual_raise_fund']):
@@ -168,21 +178,7 @@ class ConvertBondBeta(object):
                 bond_info['raise_fund_count'] = float(row['plan_raise_fund']) * 10000 / float(row['issue_par'])
 
 
-            # 当前市场收盘价格
-            bond_market = bond.run_query(
-                query(bond.CONBOND_DAILY_PRICE).filter(
-                                    bond.CONBOND_DAILY_PRICE.code == bond_info['code'],
-                                    bond.CONBOND_DAILY_PRICE.date == date,
-                                )
-            )
-            try:
-                bond_info['price'] =  float(bond_market['close'])
-            except Exception:
-                # 有部分强赎退市的转债不加入指数处理
-                continue
-
-
-            # 转股溢价
+            # 转股信息
             bond_stock = bond.run_query(
                 query(bond.CONBOND_DAILY_CONVERT).filter(
                                     bond.CONBOND_DAILY_CONVERT.code == bond_info['code'],
@@ -190,10 +186,33 @@ class ConvertBondBeta(object):
                                 )
             )
 
+            # 统计转股信息，如果99%转股，就代表强赎退市，暂不记入，另外要修正存量债券数目
+            if not bond_stock['acc_convert_ratio'].empty:
+                if bond_stock['acc_convert_ratio'].iloc[-1] >= 99.5:
+                    continue
+                else:
+                    bond_info['raise_fund_count'] = bond_info['raise_fund_count'] * (100.0 - bond_stock['acc_convert_ratio'].iloc[-1])
+
             # 先取得转股价，然后取得正股收盘价，然后计算溢价率：转股溢价=（100/转股价格）*正股收盘价-可转债收盘价）
             # 转股价如果有下修，先取得下修转股价
             if not bond_stock['convert_price'].empty:
                 bond_info['convert_price'] =  float(bond_stock['convert_price'].iloc[-1])
+
+            # 当前市场收盘价格
+            bond_market = bond.run_query(
+                query(bond.CONBOND_DAILY_PRICE).filter(
+                                    bond.CONBOND_DAILY_PRICE.code == bond_info['code'],
+                                    bond.CONBOND_DAILY_PRICE.date <= date,
+                                )
+            )
+            try:
+                bond_info['price'] =  float(bond_market['close'].iloc[-1])
+            except Exception:
+                # 有部分还没有公布信息的的转债用债券面值计算价格
+                bond_info['price'] =  float(row['par'])
+
+
+
 
             # 获取正股价格
             df_stock_price = get_price(bond_info['company_code'],
@@ -203,7 +222,6 @@ class ConvertBondBeta(object):
                                        fields=['close'])
             bond_info['stock_price'] = df_stock_price['close'][-1]
             bond_info['convert_premium_ratio'] = (bond_info['price'] - 100/bond_info['convert_price']*bond_info['stock_price']) / (100/bond_info['convert_price']*bond_info['stock_price'])
-
 
             bond_list.append(bond_info)
 
@@ -301,7 +319,6 @@ class ConvertBondBeta(object):
             return quantile / 10.0
         else:
             return 1.0
-
 
 # 测试
 
