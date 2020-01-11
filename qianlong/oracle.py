@@ -44,18 +44,18 @@ class BoudStrategy(object):
 
         """
         cheap_bond_quantile = self._underrate_market / self._total_market
-        premium_ratio_quantile = self._index_bond.get_quantile_of_history_factors(
+        self._premium_ratio_quantile = self._index_bond.get_quantile_of_history_factors(
                                         self._avg_premium_ratio, self._history_factors['avg_premium_ratios'])
 
-        avg_price_quantile = self._index_bond.get_quantile_of_history_factors(
+        self._avg_price_quantile = self._index_bond.get_quantile_of_history_factors(
                                         self._avg_price, self._history_factors['avg_prices'])
 
-        win_rate = min([cheap_bond_quantile, 1-premium_ratio_quantile, 1-avg_price_quantile])
+        win_rate = min([cheap_bond_quantile, 1-self._premium_ratio_quantile, 1-self._avg_price_quantile])
 
         debug_msg = "当前转债存量:{:.2f}, 低估转债存量:{:.2f}，百分比:{:.2f}, 当前平均价格:{:.2f}, 百分位:{:.2f}, 当前溢价率{:.2f},百分位:{:.2f}, 胜率:{:.2f}".format(
                      self._total_market, self._underrate_market, cheap_bond_quantile,
-                     self._avg_price, avg_price_quantile,
-                     self._avg_premium_ratio, premium_ratio_quantile, win_rate)
+                     self._avg_price, self._avg_price_quantile,
+                     self._avg_premium_ratio, self._premium_ratio_quantile, win_rate)
 
         print(debug_msg)
         return win_rate
@@ -91,8 +91,8 @@ class BoudStrategy(object):
                 return 0
         else:
             if (self._avg_price > 120) or \
-               (avg_price_quantile > 0.8 and premium_ratio_quantile < 0.2) or\
-               (avg_price_quantile > 0.8 and premium_ratio_quantile > 0.8):
+               (self._avg_price_quantile > 0.8 and self._premium_ratio_quantile < 0.2) or\
+               (self._avg_price_quantile > 0.8 and self._premium_ratio_quantile > 0.8):
                 return position
             else:
                 return 0
