@@ -66,18 +66,18 @@ class BoudStrategy(object):
 
             ##### 买入条件
 
-            * 平均价格<100 (绝对条件)
-            * 平均价格历史百分位<20%, 平均溢价率历史百分位<20% (象限1)
-            * 平均价格历史百分位<20%, 平均溢价率历史百分位>80% (象限4)
+            * 平均价格<=105 (绝对条件)
+            * 平均价格历史百分位<=20%, 平均溢价率历史百分位<=20% (象限1)
+            * 平均价格历史百分位<=20%, 平均溢价率历史百分位>=80% (象限4)
 
 
             ##### 卖出条件
 
             因为可转债的债性，我们贪心一点，卖出的阈值设定高于买入条件；这样也能拿的久，毕竟我们不是用转债来做波段的；
 
-            * 平均价格>120 (绝对条件)
-            * 平均价格历史百分位>90%, 平均溢价率历史百分位<10% (象限2)
-            * 平均价格历史百分位>90%, 平均溢价率历史百分位>90% (象限3)
+            * 平均价格>=120 (绝对条件)
+            * 平均价格历史百分位>=90%, 平均溢价率历史百分位<=10% (象限2)
+            * 平均价格历史百分位>=90%, 平均溢价率历史百分位>=90% (象限3)
 
         output:
             -1 ~~ 1, -1代表清仓，0代表持仓不动， 1代表全仓买入； -0.5代表清半仓，0.5代表半仓买入
@@ -89,16 +89,16 @@ class BoudStrategy(object):
 
         if position > 0:
             # 加仓
-            if (self._avg_price < 110) or \
-               (self._avg_price_quantile < 0.2 and self._premium_ratio_quantile < 0.2) or\
-               (self._avg_price_quantile < 0.2 and self._premium_ratio_quantile > 0.8):
+            if (self._avg_price <= 105) or \
+               (self._avg_price_quantile <= 0.2 and self._premium_ratio_quantile <= 0.2) or\
+               (self._avg_price_quantile <= 0.2 and self._premium_ratio_quantile >= 0.8):
                 return position
             else:
                 return 0
         else:
-            if (self._avg_price > 120) or \
-               (self._avg_price_quantile > 0.9 and self._premium_ratio_quantile < 0.1) or\
-               (self._avg_price_quantile > 0.9 and self._premium_ratio_quantile > 0.9):
+            if (self._avg_price >= 120) or \
+               (self._avg_price_quantile >= 0.9 and self._premium_ratio_quantile <= 0.1) or\
+               (self._avg_price_quantile >= 0.9 and self._premium_ratio_quantile >= 0.9):
                 return position
             else:
                 return 0
