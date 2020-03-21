@@ -79,7 +79,7 @@ class KLYHStrategy(object):
     def kelly(self, pe, history_avg_roe, national_debt_rate, action=1):
         """
         买入时用凯利公式计算仓位：https://happy123.me/blog/2019/04/08/zhi-shu-tou-zi-ce-lue/
-        卖出时简单的用 70% 清仓0.5成， 80%清仓2成，90%清仓3成
+        卖出时简单的用 95% 清仓1成， 97%清仓2成，99%清仓7成
 
         input:
             pe: 当前pe
@@ -100,7 +100,7 @@ class KLYHStrategy(object):
             elif pe_quantile>=0.97 and pe_quantile<0.99:
                 position = -0.2
             elif pe_quantile>=0.99:
-                position = -0.3
+                position = -0.7
             else:
                 pass
             return position
@@ -236,25 +236,28 @@ class StockBeta(object):
 
 BENCHMARK_INDEX_STOCK = '000300.XSHG'
 STOCKS = [
-    '000895.XSHE',	#双汇发展
-    '601088.XSHG',	#中国神华
-    '600900.XSHG',	#长江电力
-    '601988.XSHG',	#中国银行
-    '600383.XSHG',	#金地集团
-    '600377.XSHG',	#宁沪高速
-    '600548.XSHG',	#深高速
-    '600660.XSHG',	#福耀玻璃
-    '000002.XSHE',	#万科Ａ
-    '600021.XSHG',	#上海电力
-    '002508.XSHE',  #老板电器
-    '600036.XSHG',  #招商银行
-    '002142.XSHE',  #宁波银行
-    '600009.XSHG',  #上海机场
+    #'601088.XSHG',	#中国神华
+    #'601988.XSHG',	#中国银行
+    #'600660.XSHG',	#福耀玻璃
+    #'600021.XSHG',	#上海电力
+    #'002508.XSHE',  #老板电器
+    #'002142.XSHE',  #宁波银行
     #'601288.XSHG',	#农业银行
+    #'600519.XSHG',  #贵州茅台
+
+    '600900.XSHG',	#长江电力
+    '000895.XSHE',	#双汇发展
+    '000651.XSHE',  #格力电器
+    '600036.XSHG',  #招商银行
+    '000002.XSHE',	#万科Ａ
+    '600383.XSHG',	#金地集团
+    '600548.XSHG',	#深高速
+    '600377.XSHG',	#宁沪高速
+    '600009.XSHG',  #上海机场
 ]
 
-TOTAL_CASH = 50000 * len(STOCKS)
-UNIT_CASH = TOTAL_CASH / len(STOCKS) / 5
+TOTAL_CASH = 600000.0
+UNIT_CASH = TOTAL_CASH / len(STOCKS)
 
 # =============================================================
 # 初始化函数，设定基准等等
@@ -311,7 +314,8 @@ def srun(context):
     for stock_index in STOCKS:
         fund_info = get_security_info(stock_index)
         cash = context.portfolio.available_cash
-        fund_value =  context.portfolio.positions_value
+        total_fund_value =  context.portfolio.positions_value
+        fund_value =  context.portfolio.positions[stock_index].value
 
         if fund_value > 0:
             fund_amount = context.portfolio.positions[stock_index].closeable_amount
@@ -327,7 +331,8 @@ def srun(context):
 
         if position > 0 and cash > 10:
             if cash >= UNIT_CASH*position:
-                order_value(stock_index, UNIT_CASH*position)
+                if  fund_value < TOTAL_CASH*0.5:
+                    order_value(stock_index, UNIT_CASH*position)
             else:
                 order_value(stock_index, cash)
         elif position < 0:
