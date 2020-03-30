@@ -241,7 +241,7 @@ class IndexStockBeta(object):
 # 测试
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from jqfactor import *
 
 import warnings
@@ -253,26 +253,37 @@ index_stocks = {
     '000925.XSHG':'基本面50',  #160716.OF 嘉实基本面50指数
     '000016.XSHG':'上证50',     #110003.OF 易方达上证50指数, 501050,华夏上证50AH优选指数
     '000300.XSHG':'沪深300',    #000176.OF 嘉实沪深300增强
+
     '000905.XSHG':'中证500',    #161017.OF 富国中证500增强
+    #'512260.XSHG':'低波500',    #003318.OF 景顺长城中证500低波动
+
     '000919.XSHG':'300价值',    #310398.OF 申万沪深300价值
     '000922.XSHG':'中证红利',   #100032.OF 富国中证红利
     '399702.XSHE':'深证F120',   #070023.OF 嘉实深F120基本面联接
     '399978.XSHE':'中证医药100',#001550.OF 天弘中证医药100
-    '399812.XSHE':'中证养老',   #000968.OF 广发中证养老指数
     '000932.XSHG':'中证消费',   #000248.OF 汇添富中证主要消费ETF联接
     '000807.XSHG':'食品饮料',   #001631.OF 天弘中证食品饮料
     '399006.XSHE':'创业板指',   #110026.OF 易方达创业板ETF联接
     '000992.XSHG':'全指金融',   #001469.OF 广发金融地产联接
-    '000827.XSHG':'中证环保',   #001064.OF 广发中证环保ETF联接A
     '399986.XSHE':'中证银行',   #001594.OF 天弘中证银行A
+
+    # 周期性行业，长久来看价值不高，除非特别特别低 百里挑一才能入场
+    '399812.XSHE':'中证养老',   #000968.OF 广发中证养老指数
+    '399971.XSHE':'中证传媒',   #004752.OF 广发中证传媒ETF联接A
+    '000827.XSHG':'中证环保',   #001064.OF 广发中证环保ETF联接A
+    '399959.XSHE':'军工指数',   #512660.OF 国泰军工指数
+    '399393.XSHE':'国证地产(这是一支分级基金，需要等到2020-06之后看看形势)',   #160218.OF 国泰国证房地产行业指数
     '399975.XSHE':'中证全指证券公司' #502010.OF 易方达证券公司分级
 }
 
-for index_code, index_name in index_stocks.items():
-        base_date = datetime.now().strftime('%Y-%m-%d')
-            #base_date = '2019-1-5'
-                stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
-                    print("{}:============{}=============".format(base_date, index_name))
-                        stragety = KLYHStrategy(stock)
-                            print(stragety.get_trading_position())
+#print(get_fund_info('163407.OF'))
 
+for index_code, index_name in index_stocks.items():
+    base_date = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
+    #base_date = datetime.now().strftime('%Y-%m-%d')
+    #base_date = '2014-05-10' # 后视镜市场低点
+    #base_date = '2019-01-30' # 后视镜市场低点
+    stock = IndexStockBeta(index_code, base_date=base_date, history_days=365*5)
+    print("{}:============{}=============".format(base_date, index_name))
+    stragety = KLYHStrategy(stock)
+    print(stragety.get_trading_position())
