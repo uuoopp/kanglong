@@ -245,19 +245,29 @@ STOCKS = [
     #'601288.XSHG',	#农业银行
     #'600519.XSHG',  #贵州茅台
 
-    '600900.XSHG',	#长江电力
-    '000895.XSHE',	#双汇发展
-    '000651.XSHE',  #格力电器
     '600036.XSHG',  #招商银行
-    '000002.XSHE',	#万科Ａ
-    '600383.XSHG',	#金地集团
-    '600548.XSHG',	#深高速
-    '600377.XSHG',	#宁沪高速
+    '600900.XSHG',	#长江电力
+    '002142.XSHE',  #宁波银行
     '600009.XSHG',  #上海机场
+    '000002.XSHE',	#万科Ａ
+    '000651.XSHE',  #格力电器
+    '000895.XSHE',	#双汇发展
+
+
+    '600548.XSHG',	#深高速
+    '600383.XSHG',	#金地集团
+    '600309.XSHG',  #万华化学
 ]
 
 TOTAL_CASH = 600000.0
+
 UNIT_CASH = TOTAL_CASH / len(STOCKS)
+
+# 单只股票持仓最大不超过20%
+MAX_SINGLE_STOCK_VALUE = 0.2
+
+# 当推荐仓位大于0.2时，才能下单
+ORDER_POSITION = 0.2
 
 # =============================================================
 # 初始化函数，设定基准等等
@@ -322,16 +332,16 @@ def srun(context):
         else:
             fund_amount = 0
 
-        print("cash:{}, fund:{}, fund_value:{}, fund_amount:{}".format(cash, fund_info.display_name, fund_value, fund_amount))
+        print("cash:{}, fund:{}, fund_value:{}, fund_amount:{}, total_fund_value:{}".format(cash, fund_info.display_name, fund_value, fund_amount, total_fund_value))
 
         current_date = context.current_dt.strftime("%Y-%m-%d")
         stock = StockBeta(stock_index, base_date=current_date, history_days=5*365)
         stragety = KLYHStrategy(stock)
         position = stragety.get_trading_position()
 
-        if position > 0 and cash > 10:
+        if position > ORDER_POSITION and cash > 10:
             if cash >= UNIT_CASH*position:
-                if  fund_value < TOTAL_CASH*0.5:
+                if  fund_value < (total_fund_value + cash) * MAX_SINGLE_STOCK_VALUE:
                     order_value(stock_index, UNIT_CASH*position)
             else:
                 order_value(stock_index, cash)

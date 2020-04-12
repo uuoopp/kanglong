@@ -4,6 +4,7 @@ import bisect
 from jqdata import get_all_trade_days
 from datetime import datetime, timedelta
 
+
 class KLYHStrategy(object):
 
     # 期望年化收益率15%
@@ -77,7 +78,7 @@ class KLYHStrategy(object):
     def kelly(self, pe, history_avg_roe, national_debt_rate, action=1):
         """
         买入时用凯利公式计算仓位：https://happy123.me/blog/2019/04/08/zhi-shu-tou-zi-ce-lue/
-        卖出时简单的用 70% 清仓0.5成， 80%清仓2成，90%清仓3成
+        卖出时简单的用 95% 清仓1成， 97%清仓2成，99%清仓7成
 
         input:
             pe: 当前pe
@@ -98,7 +99,7 @@ class KLYHStrategy(object):
             elif pe_quantile>=0.97 and pe_quantile<0.99:
                 position = -0.2
             elif pe_quantile>=0.99:
-                position = -0.3
+                position = -0.7
             else:
                 pass
             return position
@@ -232,7 +233,6 @@ class StockBeta(object):
         else:
             return 1.0
 
-
 # 测试
 
 import pandas as pd
@@ -244,26 +244,55 @@ warnings.filterwarnings("ignore")
 
 
 STOCKS = {
-    '000895.XSHE': '双汇发展',
-    '601088.XSHG': '中国神华',
-    '600900.XSHG': '长江电力',
-    '601988.XSHG': '中国银行',
-    '600383.XSHG': '金地集团',
-    '600377.XSHG': '宁沪高速',
-    '600548.XSHG': '深高速',
-    '600660.XSHG': '福耀玻璃',
-    '000002.XSHE': '万科Ａ',
-    '600021.XSHG': '上海电力',
-    '002508.XSHE': '老板电器',
+
     '600036.XSHG': '招商银行',
+    '600900.XSHG': '长江电力',
     '002142.XSHE': '宁波银行',
     '600009.XSHG': '上海机场',
-    #'601288.XSHG',	#农业银行
+    '000002.XSHE': '万科Ａ',
+    '000651.XSHE': '格力电器',
+    '000895.XSHE': '双汇发展',
+
+
+    '600548.XSHG': '深高速',
+    '600383.XSHG': '金地集团',
+    '600309.XSHG': '万华化学',
+
+
+    # 不理解的公司
+    '000876.XSHE': '新希望',
+    '600600.XSHG': '青岛啤酒',
+    '600887.XSHG': '伊利牛奶',
+    '600597.XSHG': '光明乳业',
+    '600315.XSHG': '上海家化',
+
+    '600377.XSHG': '宁沪高速',
+    '000089.XSHE': '深圳机场',
+    '600004.XSHG': '白云机场',
+
+    '600660.XSHG': '福耀玻璃',
+    '002508.XSHE': '老板电器',
+    '002415.XSHE': '海康威视',
+
+    '601939.XSHG': '建设银行',
+    '601288.XSHG': '农业银行',
+    '601988.XSHG': '中国银行',
+    '600016.XSHG': '民生银行',
+
+    # 前景下行的公司
+    '601088.XSHG': '中国神华',
+
+    # 股价不能正常反应价值的公司
+    '600674.XSHG': '川投能源',
+    '600886.XSHG': '国投电力'
+
 }
 
 for index_code, index_name in STOCKS.items():
-    base_date = datetime.now().strftime('%Y-%m-%d')
-    #base_date = '2019-1-5'
+    base_date = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
+    #base_date = datetime.now().strftime('%Y-%m-%d')
+    #base_date = '2014-05-10' # 后视镜市场低点
+    #base_date = '2019-01-30' # 后视镜市场低点
     stock = StockBeta(index_code, base_date=base_date, history_days=365*5)
     print("{}:============{}=============".format(base_date, index_name))
     stragety = KLYHStrategy(stock)
