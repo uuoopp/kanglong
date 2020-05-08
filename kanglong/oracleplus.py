@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import bisect
 from jqdata import get_all_trade_days
 from datetime import datetime, timedelta
-
 
 class KLYHStrategy(object):
 
@@ -244,45 +241,53 @@ warnings.filterwarnings("ignore")
 
 
 STOCKS = {
-
+    # 防守反击
     '600036.XSHG': '招商银行',
-    '600900.XSHG': '长江电力',
     '002142.XSHE': '宁波银行',
     '600009.XSHG': '上海机场',
+    '600900.XSHG': '长江电力',
     '000002.XSHE': '万科Ａ',
+    '600383.XSHG': '金地集团',
     '000651.XSHE': '格力电器',
     '000895.XSHE': '双汇发展',
+    '603288.XSHG': '海天味业',
+    '002415.XSHE': '海康威视',
 
 
-    '600548.XSHG': '深高速',
-    '600383.XSHG': '金地集团',
-    '600309.XSHG': '万华化学',
-
-
-    # 不理解的公司
+    # 以食为天
     '000876.XSHE': '新希望',
     '600600.XSHG': '青岛啤酒',
     '600887.XSHG': '伊利牛奶',
     '600597.XSHG': '光明乳业',
     '600315.XSHG': '上海家化',
+    '002507.XSHE': '涪陵榨菜',
+    '000895.XSHE': '双汇发展',
+    '002726.XSHE': '龙大肉食',
+    '603288.XSHG': '海天味业',
+    '600519.XSHG': '贵州茅台',
+    '000858.XSHE': '五粮液',
+    '000869.XSHE': '张裕A',
+    '600298.XSHG': '安琪酵母',
 
+    # 公共交通
+    '600548.XSHG': '深高速',
     '600377.XSHG': '宁沪高速',
     '000089.XSHE': '深圳机场',
     '600004.XSHG': '白云机场',
 
+    # 制造化工
     '600660.XSHG': '福耀玻璃',
     '002508.XSHE': '老板电器',
     '002415.XSHE': '海康威视',
+    '600309.XSHG': '万华化学',
 
     '601939.XSHG': '建设银行',
     '601288.XSHG': '农业银行',
     '601988.XSHG': '中国银行',
     '600016.XSHG': '民生银行',
 
-    # 前景下行的公司
+    # 能源电力
     '601088.XSHG': '中国神华',
-
-    # 股价不能正常反应价值的公司
     '600674.XSHG': '川投能源',
     '600886.XSHG': '国投电力'
 
@@ -293,6 +298,7 @@ for index_code, index_name in STOCKS.items():
     #base_date = datetime.now().strftime('%Y-%m-%d')
     #base_date = '2014-05-10' # 后视镜市场低点
     #base_date = '2019-01-30' # 后视镜市场低点
+    #base_date = '2014-05-3' # 后视镜市场低点
     stock = StockBeta(index_code, base_date=base_date, history_days=365*5)
     print("{}:============{}=============".format(base_date, index_name))
     stragety = KLYHStrategy(stock)
