@@ -67,5 +67,11 @@
 
 这个永久组合，是25%现金+25%债券+25%股票+25%黄金组合而来；我把这一招称之为:
 
-#### [降龙](xianglongplus.md)
+#### [降龙永久组合](xianglongplus.md)
 
+
+## 知错录
+
+平时关于一些投资的思考文章，最后形成一种备忘录的形式，以供自我批判；
+
+https://github.com/brain-zhang/xianglong/wiki
