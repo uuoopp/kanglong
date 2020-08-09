@@ -3,7 +3,7 @@
 """doctopt 资产动态再平衡回测小工具
 
 Usage:
-  rebalancing.py <csvfile> <begin> <down> <up>
+  rebalancing.py <csvfile> <begin> <up> <down>
 
 Options:
   -h --help                                             Show this screen.
@@ -105,5 +105,6 @@ if __name__ == '__main__':
         do_balancing(market_data_unit, rebalance_asset)
 
     for i in rebalance_asset:
+        i['asset_price'] = i['risk_asset'] / i['risk_asset_unit']
         i['total_asset'] = i['cash_asset'] + i['risk_asset']
         print(i)
