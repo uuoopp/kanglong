@@ -29,6 +29,7 @@ from docopt import docopt
 
 INITIAL_ASSET = 10000.0
 ASSETA = 0.7
+ASSETA_DOWN = 0.3
 UP = float(15.0) / 100
 DOWN = float(15.0) / 100
 
@@ -58,12 +59,16 @@ def do_balancing(market_data_unit, rebalance_asset):
     last_cash_asset = rebalance_asset[-1]['cash_asset']
 
     if ((current_risk_asset > last_risk_asset) and (
-            (current_risk_asset - last_risk_asset) / (last_risk_asset + last_cash_asset) > UP)) or \
-       ((current_risk_asset < last_risk_asset) and (
-           (last_risk_asset - current_risk_asset) / (last_risk_asset + last_cash_asset) > DOWN)):
+            (current_risk_asset - last_risk_asset) / (last_risk_asset + last_cash_asset) > UP)):
         cash_asset = (current_risk_asset + last_cash_asset) * ASSETA
         risk_asset = (current_risk_asset + last_cash_asset) * (1 - ASSETA)
         risk_asset_unit = risk_asset / market_data_unit['price']
+    elif ((current_risk_asset < last_risk_asset) and (
+            (last_risk_asset - current_risk_asset) / (last_risk_asset + last_cash_asset) > DOWN)):
+        cash_asset = (current_risk_asset + last_cash_asset) * (1- ASSETA_DOWN)
+        risk_asset = (current_risk_asset + last_cash_asset) * ASSETA_DOWN
+        risk_asset_unit = risk_asset / market_data_unit['price']
+
     else:
         return
 
