@@ -134,7 +134,7 @@ class ConvertBondBeta(object):
                 if bond_stock['acc_convert_ratio'].iloc[-1] >= 99.5:
                     continue
                 else:
-                    bond_info['current_fund_volume'] = bond_info['raise_fund_volume'] *                             (100.0 - bond_stock['acc_convert_ratio'].iloc[-1])
+                    bond_info['current_fund_volume'] = bond_info['raise_fund_volume'] *                             (100.0 - bond_stock['acc_convert_ratio'].iloc[-1]) / 100.0
             
             # 先取得转股价，然后取得正股收盘价，然后计算溢价率：转股溢价=（100/转股价格）*正股收盘价-可转债收盘价）
             # 转股价如果有下修，先取得下修转股价
@@ -368,7 +368,7 @@ class DLowStrategy(object):
         """
         self._set_stock_info(bond_list)
         filter_bond_list = filter(
-            lambda x: x['stock_pb'] > 1.3,
+            lambda x: x.get('stock_pb', None) and x['stock_pb'] > 1.3,
             bond_list
         )
         return list(filter_bond_list)
@@ -443,11 +443,10 @@ class DLowStrategy(object):
         return support_bond_list
 
 
-# In[ ]:
+# In[4]:
 
 
 # 测试
-import prettytable
 import pandas as pd
 from datetime import datetime, timedelta
 from jqfactor import *
@@ -455,7 +454,7 @@ from jqfactor import *
 import warnings
 
 base_date = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
-#base_date = '2020-01-10'
+#base_date = '2019-01-10'
 
 index_bond = ConvertBondBeta(base_date=base_date)
 print(base_date)
@@ -463,6 +462,11 @@ print("=========================")
 
 # 获取指定时间转债列表及统计值 
 bond_list = index_bond.get_bonds(base_date)
+pd.DataFrame(bond_list)
+
+
+# In[5]:
+
 
 # 先不采用pe, pb百分位筛选
 bond_list_a = DLowStrategy(bond_list).get_support_bonds(filter_pb_pe_quantile=False)
@@ -480,8 +484,8 @@ pd.DataFrame(bond_list_b)
 # In[ ]:
 
 
-bond_list_a_text = pd.DataFrame(bond_list_a).to_string()
-bond_list_b_text = pd.DataFrame(bond_list_b).to_string()
+bond_list_a_text = pd.DataFrame(bond_list_a).to_html()
+bond_list_b_text = pd.DataFrame(bond_list_b).to_html()
 
 
 # 取得几个统计值：市场总量，小于110元转债总量，价格算术平均值，溢价率算术平均值
@@ -493,8 +497,12 @@ total_market_text = "市场总量{}亿元, 小于110元转债总量{}亿元, 价
                     )
 
 split_text = '=================================================='
+print(total_market_text)
 
 send_message_text = "{}\r\n{}\r\n{}\r\n{}\r\n{}\r\n".format(
     bond_list_a_text, split_text, bond_list_b_text, split_text, total_market_text)
-print(send_message_text)
+#print(send_message_text)
+
+
+# In[ ]:
 
