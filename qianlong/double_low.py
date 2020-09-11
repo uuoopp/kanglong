@@ -4,6 +4,13 @@
 # In[1]:
 
 
+from IPython.core.display import display, HTML
+display(HTML("<style>.container { width:100% !important; }</style>"))
+
+
+# In[2]:
+
+
 import bisect
 import copy
 import logging
@@ -197,7 +204,7 @@ class ConvertBondBeta(object):
         
 
 
-# In[2]:
+# In[3]:
 
 
 class StockBeta(object):
@@ -319,16 +326,20 @@ class StockBeta(object):
             return 1.0
 
 
-# In[3]:
+# In[4]:
 
+
+DOUBLE_LOW_VALUE = 130
 
 class DLowStrategy(object):
     
     # 双低策略转债个数
     EXPECTED_ITEMS_COUNT = 20
     
-    def __init__(self, bond_list):
+    def __init__(self, bond_list, base_date):
         self._bond_list = copy.deepcopy(bond_list)
+        self._base_date = datetime.strptime(base_date, "%Y-%m-%d").date()
+        
         
     def _set_stock_info(self, bond_list):
         """增加正股估值信息
@@ -344,7 +355,8 @@ class DLowStrategy(object):
             
             if bond['stock_pe'] is None or bond['stock_pb'] is None:
                 # 正股报表有问题，剔除
-                self._bond_list.remove(bond)
+                if bond in self._bond_list:
+                    self._bond_list.remove(bond)
                 continue
             
             history_factors = stock.get_stock_beta_history_factors()
@@ -353,8 +365,18 @@ class DLowStrategy(object):
             bond['stock_pe_quantile'] = stock.get_quantile_of_history_factors(
                                                 bond['stock_pe'], history_factors['pe'])
             
+    def _filter_last_cash_date(self, bond_list):
+        """筛选掉最近到期项
+        """
+        filter_bond_list = filter(
+            lambda x: x['last_cash_date'] - self._base_date > timedelta(60),
+            bond_list
+        )
+        return list(filter_bond_list)
+        
+            
     def _filter_pb_pe_quantile(self, bond_list):
-        """筛选pb, pe历史百分位小于50%
+        """筛选pb, pe历史百分位
         """
         self._set_stock_info(bond_list)
         filter_bond_list = filter(
@@ -404,10 +426,10 @@ class DLowStrategy(object):
         
         
     def _filter_double_low(self, bond_list):
-        """双低小于125
+        """双低小于125-130
         """
         filter_bond_list = filter(
-            lambda x: x['double_low'] < 125,
+            lambda x: x['double_low'] < DOUBLE_LOW_VALUE,
             bond_list
         )
         return list(filter_bond_list)
@@ -416,6 +438,8 @@ class DLowStrategy(object):
         """
         剩余规模>1亿，且<10亿元的转债
         
+        到期时间>三个月
+        
         当前成交额>100万元的转债
         
         溢价率小于15%,主要是防止市场下跌时杀转债溢价；正股下跌，带动转债价格下跌；溢价率低的转债安全垫更厚；
@@ -423,11 +447,11 @@ class DLowStrategy(object):
         
         到期税后收益率大于0的转债
         
-        取双低值<125的转债
+        取双低值<DOUBLE_LOW_VALUE的转债
         
         筛选PB>1.3防止下修转股价时破净限制
         
-        filter_pb_pe_quantile=True, 筛选pb, pe历史百分位小于50%
+        filter_pb_pe_quantile=True, 筛选pb, pe历史百分位
         """
         support_bond_list = self._bond_list
         
@@ -435,6 +459,7 @@ class DLowStrategy(object):
         support_bond_list = self._filter_current_market_volume(support_bond_list)
         support_bond_list = self._filter_convert_premium_ratio(support_bond_list)
         support_bond_list = self._filter_double_low(support_bond_list)
+        support_bond_list = self._filter_last_cash_date(support_bond_list)
         
         if filter_pb:
             support_bond_list = self._filter_pb(support_bond_list)
@@ -445,7 +470,7 @@ class DLowStrategy(object):
         return support_bond_list
 
 
-# In[4]:
+# In[5]:
 
 
 # 测试
@@ -456,7 +481,7 @@ from jqfactor import *
 import warnings
 
 base_date = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
-#base_date = '2018-10-10'
+#base_date = '2019-01-10'
 
 index_bond = ConvertBondBeta(base_date=base_date)
 print(base_date)
@@ -467,31 +492,31 @@ bond_list = index_bond.get_bonds(base_date)
 #pd.DataFrame(bond_list)
 
 
-# In[5]:
-
-
-# 先不采用pe, pb百分位筛选
-bond_list_a = DLowStrategy(bond_list).get_support_bonds()
-pd.DataFrame(bond_list_a)
-
-
 # In[6]:
 
 
-# 采用pb>1.3筛选
-bond_list_b = DLowStrategy(bond_list).get_support_bonds(filter_pb=True)
-pd.DataFrame(bond_list_b)
+# 先不采用pe, pb百分位筛选
+bond_list_a = DLowStrategy(bond_list, base_date).get_support_bonds()
+pd.DataFrame(bond_list_a)
 
 
 # In[7]:
 
 
-# 采用pe, pb百分位筛选
-bond_list_c = DLowStrategy(bond_list).get_support_bonds(filter_pb=True, filter_pb_pe_quantile=True)
-pd.DataFrame(bond_list_c)
+# 采用pb>1.3筛选
+bond_list_b = DLowStrategy(bond_list, base_date).get_support_bonds(filter_pb=True, filter_pb_pe_quantile=False)
+pd.DataFrame(bond_list_b)
 
 
 # In[8]:
+
+
+# 采用pe, pb百分位筛选
+bond_list_c = DLowStrategy(bond_list, base_date).get_support_bonds(filter_pb=True, filter_pb_pe_quantile=True)
+pd.DataFrame(bond_list_c)
+
+
+# In[9]:
 
 
 bond_list_a_text = pd.DataFrame(bond_list_a).to_html()
@@ -513,4 +538,3 @@ print(total_market_text)
 send_message_text = "{}\r\n{}\r\n{}\r\n{}\r\n{}\r\n{}\r\n".format(
     bond_list_a_text, split_text, bond_list_b_text, bond_list_c_text, split_text, total_market_text)
 #print(send_message_text)
-
