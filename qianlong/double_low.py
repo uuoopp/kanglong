@@ -175,7 +175,7 @@ class ConvertBondBeta(object):
                                        frequency='daily', 
                                        fields=['close'])
             bond_info['stock_price'] = df_stock_price['close'][-1]
-            bond_info['convert_premium_ratio'] = (bond_info['price'] - 100/bond_info['convert_price']*bond_info['stock_price']) /                                                  (100/bond_info['convert_price']*bond_info['stock_price'])
+            bond_info['convert_premium_ratio'] = (bond_info['price'] - 100/bond_info['convert_price']*bond_info['stock_price']) /  (100/bond_info['convert_price']*bond_info['stock_price'])
             bond_info['double_low'] = bond_info['price'] + bond_info['convert_premium_ratio'] * 100
                       
             bond_list.append(bond_info)
@@ -369,7 +369,7 @@ class DLowStrategy(object):
         """筛选掉最近到期项
         """
         filter_bond_list = filter(
-            lambda x: x['last_cash_date'] - self._base_date > timedelta(60),
+            lambda x: x['last_cash_date'] - self._base_date > timedelta(360),
             bond_list
         )
         return list(filter_bond_list)
@@ -380,7 +380,7 @@ class DLowStrategy(object):
         """
         self._set_stock_info(bond_list)
         filter_bond_list = filter(
-            lambda x: x['stock_pb'] > 1.3 and x['stock_pb_quantile'] < 0.5 and x['stock_pe_quantile'] < 0.5,
+            lambda x: x['stock_pb'] > 1.3 and x['stock_pb_quantile'] < 0.8 and x['stock_pe_quantile'] < 0.8,
             bond_list
         )
         return list(filter_bond_list)
@@ -481,7 +481,7 @@ from jqfactor import *
 import warnings
 
 base_date = (datetime.now() - timedelta(1)).strftime('%Y-%m-%d')
-#base_date = '2019-01-10'
+#base_date = '2020-06-24'
 
 index_bond = ConvertBondBeta(base_date=base_date)
 print(base_date)
