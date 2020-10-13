@@ -28,8 +28,17 @@ from datetime import datetime
 from docopt import docopt
 
 INITIAL_ASSET = 10000.0
-ASSETA = 0.7
+
+
+# 初始投入资产占比
+INITIAL_ASSET_UP_DOWN = 0.3
+
+# 资产价格涨的时候调整资产占比
+ASSETA_UP = 0.3
+
+# 资产价格跌的时候调整资产占比
 ASSETA_DOWN = 0.3
+
 UP = float(15.0) / 100
 DOWN = float(15.0) / 100
 
@@ -60,12 +69,12 @@ def do_balancing(market_data_unit, rebalance_asset):
 
     if ((current_risk_asset > last_risk_asset) and (
             (current_risk_asset - last_risk_asset) / (last_risk_asset + last_cash_asset) > UP)):
-        cash_asset = (current_risk_asset + last_cash_asset) * ASSETA
-        risk_asset = (current_risk_asset + last_cash_asset) * (1 - ASSETA)
+        cash_asset = (current_risk_asset + last_cash_asset) * (1 - ASSETA_UP)
+        risk_asset = (current_risk_asset + last_cash_asset) * ASSETA_UP
         risk_asset_unit = risk_asset / market_data_unit['price']
     elif ((current_risk_asset < last_risk_asset) and (
             (last_risk_asset - current_risk_asset) / (last_risk_asset + last_cash_asset) > DOWN)):
-        cash_asset = (current_risk_asset + last_cash_asset) * (1- ASSETA_DOWN)
+        cash_asset = (current_risk_asset + last_cash_asset) * (1 - ASSETA_DOWN)
         risk_asset = (current_risk_asset + last_cash_asset) * ASSETA_DOWN
         risk_asset_unit = risk_asset / market_data_unit['price']
 
@@ -85,8 +94,8 @@ def do_balancing(market_data_unit, rebalance_asset):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='rebalancing 1.0')
 
-    cash_asset = INITIAL_ASSET * ASSETA
-    risk_asset = INITIAL_ASSET * (1.0 - ASSETA)
+    cash_asset = INITIAL_ASSET * (1 - INITIAL_ASSET_UP_DOWN)
+    risk_asset = INITIAL_ASSET * INITIAL_ASSET_UP_DOWN
 
     csvfile = arguments['<csvfile>']
     begin_date = arguments['<begin>']
