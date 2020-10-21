@@ -20,7 +20,24 @@ Example:
         2012-7-4,6.50
         2012-7-5,6.70
 
-    rebalancing.py 2019-01-01 15 15
+
+    示例：
+
+    比特币投资动态再平衡：
+    从2018年1月1日开始初始配置，每次比特币价格上涨对整体净值影响+10%的时候，以及价格下跌，对整体净值影响-15%的时候，再平衡
+    python rebalancing.py bitcoin.csv 2018-01-01 10 15
+
+
+
+    茅台投资动态再平衡：
+    从2002年1月1日开始初始配置，每次茅台价格上涨对整体净值影响+10%的时候，以及价格下跌，对整体净值影响-15%的时候，再平衡
+    python rebalancing.py bitcoin.csv 2002-01-04 10 15
+
+
+
+    最优比例：
+
+    大量回测表明，55动态再平衡的效果最好；但是这需要忍受巨大的回撤，没有几个人能耐住
 """
 
 import csv
@@ -38,6 +55,7 @@ ASSETA_UP = 0.3
 
 # 资产价格跌的时候调整资产占比
 ASSETA_DOWN = 0.3
+
 
 UP = float(15.0) / 100
 DOWN = float(15.0) / 100
@@ -66,6 +84,9 @@ def do_balancing(market_data_unit, rebalance_asset):
 
     last_risk_asset = rebalance_asset[-1]['risk_asset']
     last_cash_asset = rebalance_asset[-1]['cash_asset']
+
+    if market_data_unit['price'] < 0.1:
+        return
 
     if ((current_risk_asset > last_risk_asset) and (
             (current_risk_asset - last_risk_asset) / (last_risk_asset + last_cash_asset) > UP)):
