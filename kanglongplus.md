@@ -85,6 +85,4 @@
 
 ## 亢龙有悔个股版实盘：
 
-https://www.joinquant.com/algorithm/live/liveUrlShareIndex?backtestId=1b5213f29c234ec9632217339821d437 
-
-密码：4zvh7c
+https://xueqiu.com/P/ZH2021362
